@@ -49,7 +49,8 @@ async def tavily_search(
         max_results=max_results,
         topic=topic,
         include_raw_content=True,
-        config=config
+        config=config,
+        include_domains=["www.msdmanuals.com"]
     )
     # Format the search results and deduplicate results by URL
     formatted_output = f"Search results: \n\n"
@@ -93,7 +94,7 @@ async def tavily_search(
         return "No valid search results found. Please try different search queries or use a different search API."
 
 
-async def tavily_search_async(search_queries, max_results: int = 5, topic: Literal["general", "news", "finance"] = "general", include_raw_content: bool = True, config: RunnableConfig = None):
+async def tavily_search_async(search_queries, max_results: int = 5, topic: Literal["general", "news", "finance"] = "general", include_raw_content: bool = True, config: RunnableConfig = None, include_domains: Optional[List[str]] = None):
     tavily_async_client = AsyncTavilyClient(api_key=get_tavily_api_key(config))
     search_tasks = []
     for query in search_queries:
@@ -102,7 +103,8 @@ async def tavily_search_async(search_queries, max_results: int = 5, topic: Liter
                     query,
                     max_results=max_results,
                     include_raw_content=include_raw_content,
-                    topic=topic
+                    topic=topic,
+                    include_domains=include_domains
                 )
             )
     search_docs = await asyncio.gather(*search_tasks)

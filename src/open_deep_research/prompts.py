@@ -65,13 +65,6 @@ Guidelines:
 
 4. Use the First Person
 - Phrase the request from the perspective of the user.
-
-5. Sources
-- If specific sources should be prioritized, specify them in the research question.
-- For product and travel research, prefer linking directly to official or primary websites (e.g., official brand sites, manufacturer pages, or reputable e-commerce platforms like Amazon for user reviews) rather than aggregator sites or SEO-heavy blogs.
-- For academic or scientific queries, prefer linking directly to the original paper or official journal publication rather than survey papers or secondary summaries.
-- For people, try linking directly to their LinkedIn profile, or their personal website if they have one.
-- If the query is in a specific language, prioritize sources published in that language.
 """
 
 
@@ -189,7 +182,6 @@ Only these fully comprehensive cleaned findings are going to be returned to the 
 1. Your output findings should be fully comprehensive and include ALL of the information and sources that the researcher has gathered from tool calls and web searches. It is expected that you repeat key information verbatim.
 2. This report can be as long as necessary to return ALL of the information that the researcher has gathered.
 3. In your report, you should return inline citations for each source that the researcher found.
-4. You should include a "Sources" section at the end of the report that lists all of the sources the researcher found with corresponding citations, cited against statements in the report.
 5. Make sure to include ALL of the sources that the researcher gathered in the report, and how they were used to answer the question!
 6. It's really important not to lose any sources. A later LLM will be used to merge this report with others, so having all of the sources is critical.
 </Guidelines>
@@ -198,16 +190,13 @@ Only these fully comprehensive cleaned findings are going to be returned to the 
 The report should be structured like this:
 **List of Queries and Tool Calls Made**
 **Fully Comprehensive Findings**
-**List of All Relevant Sources (with citations in the report)**
 </Output Format>
 
 <Citation Rules>
 - Assign each unique URL a single citation number in your text
-- End with ### Sources that lists each source with corresponding numbers
-- IMPORTANT: Number sources sequentially without gaps (1,2,3,4...) in the final list regardless of which sources you choose
 - Example format:
-  [1] Source Title: URL
-  [2] Source Title: URL
+  [1](URL)
+  [2](URL)
 </Citation Rules>
 
 Critical Reminder: It is extremely important that any information that is even remotely relevant to the user's research topic is preserved verbatim (e.g. don't rewrite it, don't summarize it, don't paraphrase it).
@@ -240,9 +229,8 @@ Here are the findings from the research that you conducted:
 Please create a detailed answer to the overall research brief that:
 1. Is well-organized with proper headings (# for title, ## for sections, ### for subsections)
 2. Includes specific facts and insights from the research
-3. References relevant sources using [Title](URL) format
+3. References relevant sources using [1](URL) format
 4. Provides a balanced, thorough analysis. Be as comprehensive as possible, and include all information that is relevant to the overall research question. People are using you for deep research and will expect detailed, comprehensive answers.
-5. Includes a "Sources" section at the end with all referenced links
 
 You can structure your report in a number of different ways. Here are some examples:
 
@@ -289,14 +277,10 @@ Format the report in clear markdown with proper structure and include source ref
 
 <Citation Rules>
 - Assign each unique URL a single citation number in your text
-- End with ### Sources that lists each source with corresponding numbers
-- IMPORTANT: Number sources sequentially without gaps (1,2,3,4...) in the final list regardless of which sources you choose
-- Each source should be a separate line item in a list, so that in markdown it is rendered as a list.
-- Example format:
-  [1] Source Title: URL
-  [2] Source Title: URL
 - Citations are extremely important. Make sure to include these, and pay a lot of attention to getting these right. Users will often use these citations to look into more information.
-</Citation Rules>
+- Example format:
+  [1](URL)
+  [2](URL)
 """
 
 
