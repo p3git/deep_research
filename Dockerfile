@@ -17,9 +17,12 @@ RUN uv pip install --system -r pyproject.toml
 # Copy the rest of the application source code
 COPY . .
 
+# Install the project in editable mode
+RUN uv pip install --system -e .
+
 # Expose the port the app runs on
 EXPOSE 2024
 
 # Command to run the application
 # We add --host 0.0.0.0 to allow external connections to the container
-CMD ["uvx", "--refresh", "--from", "langgraph-cli[inmem]", "--with-editable", ".", "--python", "3.11", "langgraph", "dev", "--allow-blocking", "--host", "0.0.0.0", "--port", "2024"]
+CMD ["langgraph", "dev", "--host", "0.0.0.0", "--port", "2024"]
