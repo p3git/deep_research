@@ -108,6 +108,15 @@ async def tavily_search_async(search_queries, max_results: int = 5, topic: Liter
                 )
             )
     search_docs = await asyncio.gather(*search_tasks)
+
+    if include_domains:
+        for search_doc in search_docs:
+            search_doc["results"] = [
+                result
+                for result in search_doc["results"]
+                if any(domain in result["url"] for domain in include_domains)
+            ]
+
     return search_docs
 
 async def summarize_webpage(model: BaseChatModel, webpage_content: str) -> str:
