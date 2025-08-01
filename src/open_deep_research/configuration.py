@@ -52,7 +52,7 @@ class Configuration(BaseModel):
         }
     )
     max_concurrent_research_units: int = Field(
-        default=5,
+        default=4,
         metadata={
             "x_oap_ui_config": {
                 "type": "slider",
@@ -104,6 +104,19 @@ class Configuration(BaseModel):
                 "max": 30,
                 "step": 1,
                 "description": "Maximum number of tool calling iterations to make in a single researcher step."
+            }
+        }
+    )
+    max_search_queries_per_step: int = Field(
+        default=3,
+        metadata={
+            "x_oap_ui_config": {
+                "type": "slider",
+                "default": 3,
+                "min": 1,
+                "max": 10,
+                "step": 1,
+                "description": "Maximum number of search queries to generate per step."
             }
         }
     )

@@ -145,6 +145,7 @@ You can use any of the tools provided to you to find resources that can help ans
 - Tool calling is costly, so be sure to be very intentional about what you look up. Some of the tools may have implicit limitations. As you call tools, feel out what these limitations are, and adjust your tool calls accordingly.
 - This could mean that you need to call a different tool, or that you should call "ResearchComplete", e.g. it's okay to recognize that a tool has limitations and cannot do what you need it to.
 - Don't mention any tool limitations in your output, but adjust your tool calls accordingly.
+- When using a search tool, do not generate more than {max_search_queries_per_step} search queries in a single turn.
 - {mcp_prompt}
 <Tool Calling Guidelines>
 
@@ -193,8 +194,8 @@ The report should be structured like this:
 </Output Format>
 
 <Citation Rules>
-- Assign each unique URL a single citation number in your text
-- Example format:
+- Assign each unique URL a single citation number in your text (after relevant piece of information)
+- Example format (inline):
   [1](URL)
   [2](URL)
 </Citation Rules>

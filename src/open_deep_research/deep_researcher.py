@@ -204,7 +204,11 @@ async def researcher(state: ResearcherState, config: RunnableConfig) -> Command[
         "api_key": get_api_key_for_model(configurable.research_model, config),
         "tags": ["langsmith:nostream"]
     }
-    researcher_system_prompt = research_system_prompt.format(mcp_prompt=configurable.mcp_prompt or "", date=get_today_str())
+    researcher_system_prompt = research_system_prompt.format(
+        mcp_prompt=configurable.mcp_prompt or "", 
+        date=get_today_str(),
+        max_search_queries_per_step=configurable.max_search_queries_per_step
+    )
     research_model = configurable_model.bind_tools(tools).with_retry(stop_after_attempt=configurable.max_structured_output_retries).with_config(research_model_config)
     response = await research_model.ainvoke([SystemMessage(content=researcher_system_prompt)] + researcher_messages)
     return Command(
