@@ -1,4 +1,5 @@
 import os
+import traceback
 import aiohttp
 import asyncio
 import logging
@@ -14,9 +15,9 @@ from tavily import AsyncTavilyClient
 from langgraph.config import get_store
 from mcp import McpError
 from langchain_mcp_adapters.client import MultiServerMCPClient
-from open_deep_research.state import Summary, ResearchComplete
+from open_deep_research.state import Summary, ResearchComplete, RelevantIndices
 from open_deep_research.configuration import SearchAPI, Configuration
-from open_deep_research.prompts import summarize_webpage_prompt
+from open_deep_research.prompts import summarize_webpage_prompt, filter_titles_by_index_prompt
 
 
 ##########################
@@ -50,7 +51,7 @@ async def tavily_search(
         topic=topic,
         include_raw_content=True,
         config=config,
-        include_domains=["www.msdmanuals.com"]
+        include_domains=["www.msdmanuals.com", "pubmed.ncbi.nlm.nih.gov", "pmc.ncbi.nlm.nih.gov"]
     )
     # Format the search results and deduplicate results by URL
     formatted_output = f"Search results: \n\n"
@@ -60,7 +61,11 @@ async def tavily_search(
             url = result['url']
             if url not in unique_results:
                 unique_results[url] = {**result, "query": response['query']}
+    
     configurable = Configuration.from_runnable_config(config)
+    if configurable.should_filter_search_results:
+        unique_results = await filter_relevant_titles(unique_results, queries, config)
+
     max_char_to_include = 50_000   # NOTE: This can be tuned by the developer. This character count keeps us safely under input token limits for the latest models.
     model_api_key = get_api_key_for_model(configurable.summarization_model, config)
     summarization_model = init_chat_model(
@@ -94,6 +99,51 @@ async def tavily_search(
         return "No valid search results found. Please try different search queries or use a different search API."
 
 
+async def filter_relevant_titles(
+    unique_results: Dict[str, Dict],
+    queries: List[str],
+    config: RunnableConfig
+) -> Dict[str, Dict]:
+    """
+    Filters the search results by relevance using an LLM.
+    """
+    configurable = Configuration.from_runnable_config(config)
+    model_api_key = get_api_key_for_model(configurable.summarization_model, config)
+    filtering_model = init_chat_model(
+        model=configurable.summarization_model,
+        max_tokens=configurable.summarization_model_max_tokens,
+        api_key=model_api_key,
+        tags=["langsmith:nostream"]
+    ).with_structured_output(RelevantIndices).with_retry(stop_after_attempt=configurable.max_structured_output_retries)
+
+    titles = [result['title'] for result in unique_results.values()]
+    print("Titles :::: ", titles)
+
+    formatted_titles = "\n".join(f"{i}: {title}" for i, title in enumerate(titles))
+    print("---" * 30)
+    print("Formated Titles :::: ", formatted_titles)
+
+    try:
+        response = await filtering_model.ainvoke(
+            [
+                HumanMessage(
+                    content=filter_titles_by_index_prompt.format(
+                        research_topic="\n".join(queries), titles=formatted_titles
+                    )
+                )
+            ]
+        )
+        relevant_indices = response.relevant_indices
+        
+        filtered_results = {}
+        for i, (url, result) in enumerate(unique_results.items()):
+            if i in relevant_indices:
+                filtered_results[url] = result
+        return filtered_results
+    except Exception as e:
+        print(f"Failed to filter titles: {e}")
+        return unique_results
+
 async def tavily_search_async(search_queries, max_results: int = 5, topic: Literal["general", "news", "finance"] = "general", include_raw_content: bool = True, config: RunnableConfig = None, include_domains: Optional[List[str]] = None):
     tavily_async_client = AsyncTavilyClient(api_key=get_tavily_api_key(config))
     search_tasks = []
@@ -107,6 +157,7 @@ async def tavily_search_async(search_queries, max_results: int = 5, topic: Liter
                     include_domains=include_domains
                 )
             )
+
     search_docs = await asyncio.gather(*search_tasks)
 
     if include_domains:
@@ -128,6 +179,7 @@ async def summarize_webpage(model: BaseChatModel, webpage_content: str) -> str:
         return f"""<summary>\n{summary.summary}\n</summary>\n\n<key_excerpts>\n{summary.key_excerpts}\n</key_excerpts>"""
     except (asyncio.TimeoutError, Exception) as e:
         print(f"Failed to summarize webpage: {str(e)}")
+        traceback.print_exc()
         return webpage_content
 
 

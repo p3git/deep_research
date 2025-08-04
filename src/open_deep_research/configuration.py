@@ -65,6 +65,16 @@ class Configuration(BaseModel):
         }
     )
     # Research Configuration
+    should_filter_search_results: bool = Field(
+        default=True,
+        metadata={
+            "x_oap_ui_config": {
+                "type": "boolean",
+                "default": True,
+                "description": "Whether to filter search results by relevance using an LLM."
+            }
+        }
+    )
     search_api: SearchAPI = Field(
         default=SearchAPI.TAVILY,
         metadata={

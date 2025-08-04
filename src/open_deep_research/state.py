@@ -37,6 +37,10 @@ class ResearchQuestion(BaseModel):
         description="A research question that will be used to guide the research.",
     )
 
+class RelevantIndices(BaseModel):
+    """A list of relevant indices."""
+    relevant_indices: list[int] = Field(description="A list of indices that are relevant to the research topic.")
+
 
 ###################
 # State Definitions
